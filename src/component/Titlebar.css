@@ -1,0 +1,87 @@
+.top-title-bar {
+  height: var(--topbar-height);
+  background: white;
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  padding: 0 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 99;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--dark-text);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.notification-badge {
+  position: relative;
+  cursor: pointer;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--dark-text);
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-right: 20px;
+}
+
+@media (max-width: 992px) {
+  .top-title-bar {
+    left: 0;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+}
