@@ -1,79 +1,76 @@
-.sidebar {
-  width: var(--sidebar-width);
-  background: #081730;
-  color: var(--light-text);
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  padding-top: 20px;
-  overflow-y: auto;
-  z-index: 100;
-  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+/* Sidebar Drawer */
+.sidebar-drawer .MuiDrawer-paper {
+  background-color: #081730; /* Dark blue background color */
+  color: #fff; /* White text color */
+  box-sizing: border-box; /* Include padding and border in element's total width/height */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+  transition: width 0.3s ease; /* Smooth transition for width changes (collapsing/expanding) */
 }
 
-.logo-container {
-  padding: 0 20px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 20px;
+/* Toolbar section at top of sidebar */
+.sidebar-toolbar {
   display: flex;
-  align-items: center;
+  justify-content: space-between; /* Space out logo and toggle button */
+  min-height: 64px !important; /* Minimum height matching typical app bars */
+  padding: 0 10px; /* Horizontal padding */
+  color: #fff; /* White text color */
 }
 
-.logo {
-  font-size: 24px;
-  font-weight: 700;
+/* Toggle button inside sidebar (for closing/opening) */
+.sidebar-toggle-btn {
+  color: #fff !important; /* White icon color with important to override defaults */
+}
+
+/* Mobile hamburger button (shown when sidebar is hidden on mobile) */
+.sidebar-hamburger {
+  position: fixed !important; /* Fixed positioning to stay in view */
+  top: 80px; /* Position from top of viewport */
+  left: 10px; /* Position from left of viewport */
+  z-index: 1300; /* High z-index to ensure it appears above other content */
+  background-color: #081730 !important; /* Match sidebar background */
+  color: #fff !important; /* White icon color */
+}
+.sidebar-hamburger:hover {
+  background-color: #3a56a7 !important; /* Lighter blue on hover */
+}
+
+/* Container for individual list items */
+.sidebar-list-item {
+  display: block; /* Block-level display */
+}
+
+/* Style for navigation buttons in sidebar */
+.sidebar-btn {
+  min-height: 48px; /* Minimum height for touch targets */
+  padding: 8px 12px; /* Internal spacing */
+  color: #fff !important; /* White text color */
+  transition: background 0.3s, color 0.3s; /* Smooth transitions for hover effects */
+}
+.sidebar-btn:hover {
+  background-color: #3a56a7 !important; /* Lighter blue background on hover */
+}
+.sidebar-btn.active {
+  background-color: #3a56a7 !important; /* Lighter blue background for active/selected state */
+}
+
+/* Icon styling within sidebar buttons */
+.sidebar-icon {
+  color: #fff !important; /* White icon color */
+  min-width: 0 !important; /* Remove minimum width constraint */
+  margin-right: 16px; /* Space between icon and text */
   display: flex;
-  align-items: center;
+  justify-content: center; /* Center icon horizontally */
 }
 
-.logo i {
-  margin-right: 10px;
-  background: var(--accent-color);
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Text element styling for collapse/expand animations */
+.sidebar-text {
+  transition: opacity 0.2s ease; /* Smooth opacity transition */
 }
-
-.sidebar-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.sidebar-text.hidden {
+  opacity: 0; /* Fully transparent */
+  width: 0; /* Zero width */
+  overflow: hidden; /* Hide overflow content */
 }
-
-.menu-title {
-  padding: 15px 20px 5px;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  opacity: 0.7;
-  letter-spacing: 1px;
+.sidebar-text.visible {
+  opacity: 1; /* Fully visible */
 }
-
-.sidebar-item {
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  transition: all 0.3s;
-  cursor: pointer;
-  border-left: 4px solid transparent;
-}
-
-.sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-item.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-left: 4px solid var(--accent-color);
-}
-
-.sidebar-item i {
-  margin-right: 15px;
-  font-size: 1.1rem;
-  width: 20px;
-  text-align: center;
-}
-

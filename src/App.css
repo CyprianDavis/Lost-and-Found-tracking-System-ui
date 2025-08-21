@@ -1,34 +1,12 @@
-:root {
-  --sidebar-width: 200px;
-  --topbar-height: 50px;
-  --primary-color: #4a6fc7;
-  --secondary-color: #6b48c7;
-  --accent-color: #3bb3bd;
-  --light-bg: #f5f7fa;
-  --dark-text: #333;
-  --light-text: #fff;
-  --border-color: #e0e0e0;
-  --hover-color: #3a56a7;
-  
-}
-
-body {
-  margin: 0;
-  background-color:rgba(242,242,248,255);
-  color: var(--dark-text);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  overflow-x: hidden;
-}
-
 .app-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  background: #f5f6fa;
 }
 
-.main-content {
+.app-content {
   flex: 1;
-  margin-left: var(--sidebar-width);
-  margin-top: var(--topbar-height);
-  padding: 30px;
-  transition: all 0.3s;
+  padding: 20px;
+  transition: margin-left 0.3s ease-in-out;
 }
