@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "./component/Sidebar";
 import Titlebar from "./component/Titlebar";
+import Dashboard from "./pages/Dashboard";
 import "./App.css"; // optional global styles
 
 export default function App() {
@@ -35,7 +36,7 @@ export default function App() {
         style={{ marginLeft: `${sidebarWidth}px`, marginTop: "64px" }}
       >
         <h2>{activeMenu.toUpperCase()} Content</h2>
-        <p>This is where your page content for {activeMenu} will render.</p>
+        
       </main>
     </div>
   );
