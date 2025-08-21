@@ -74,3 +74,8 @@
 .sidebar-text.visible {
   opacity: 1; /* Fully visible */
 }
+@media (max-width: 960px) {
+  .sidebar-hamburger {
+    top: 40px; /* more natural for touch screens */
+  }
+}

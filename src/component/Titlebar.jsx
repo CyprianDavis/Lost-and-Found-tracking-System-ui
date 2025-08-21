@@ -57,7 +57,7 @@ export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
         {/* User profile section with icon and name */}
         <div className="user-profile">
           <AccountCircleIcon fontSize="large" /> {/* User avatar icon */}
-          <span className="username">John Doe</span> {/* Display username */}
+          <span className="username">Cyprian Davis</span> {/* Display username */}
         </div>
       </div>
     </div>
