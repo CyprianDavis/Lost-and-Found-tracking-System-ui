@@ -1,0 +1,134 @@
+/* Dashboard.css */
+.dashboard-container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.widgets-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.widget {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.widget:hover {
+  transform: translateY(-5px);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.widget-header h3 {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.widget-icon {
+  font-size: 24px;
+}
+
+.widget-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.widget-change {
+  font-size: 14px;
+}
+
+.widget-change.positive {
+  color: #2ecc71;
+}
+
+.widget-change.negative {
+  color: #e74c3c;
+}
+
+/* Chart container with 2:1 ratio */
+.chart-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.chart-card h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.chart-placeholder {
+  height: 250px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #7f8c8d;
+  margin-top: 15px;
+}
+
+.recent-activity {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.recent-activity h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.recent-activity ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.recent-activity li {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.recent-activity li:last-child {
+  border-bottom: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chart-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .widgets-container {
+    grid-template-columns: 1fr;
+  }
+}

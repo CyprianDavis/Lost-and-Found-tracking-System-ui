@@ -1,18 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./Titlebar.css";
+import { Bell, Settings, User } from "lucide-react";
 
-// Material UI icons
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import SettingsIcon from "@mui/icons-material/Settings";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import MenuIcon from "@mui/icons-material/Menu";
-import { useTheme, useMediaQuery } from "@mui/material";
+// Custom hook for media queries
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
+  }, [matches, query]);
+
+  return matches;
+};
 
 export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
-  // Access the current theme context for consistent styling
-  const theme = useTheme();
-  // Check if the screen size is mobile (breakpoint 'md' or below)
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Object mapping menu keys to their display titles
   const menuTitles = {
@@ -29,35 +37,33 @@ export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
   };
 
   return (
-    // Main titlebar container with dynamic positioning
-    // On mobile: left aligned, on desktop: offset by sidebar width
     <div
       className="top-title-bar"
-      style={{ left: isMobile ? 0 : `${sidebarWidth}px` }}
+      style={{
+        left: isMobile ? 0 : `${sidebarWidth}px`,
+        width: isMobile ? "100%" : `calc(100% - ${sidebarWidth}px)`,
+        transition: "all 0.3s ease",
+      }}
     >
       {/* Left section containing page title */}
       <div className="left-section">
-        {/* Display the current page title based on activeMenu prop */}
         <h1 className="page-title">{menuTitles[activeMenu]}</h1>
       </div>
 
-      {/* Right section containing user-related icons and info */}
+      {/* Right section with icons */}
       <div className="user-menu">
-        {/* Notifications icon with badge indicator */}
         <div className="icon-wrapper">
-          <NotificationsIcon fontSize="medium" />
-          <span className="badge">3</span> {/* Notification count badge */}
+          <Bell size={20} />
+          <span className="badge">3</span>
         </div>
 
-        {/* Settings icon */}
         <div className="icon-wrapper">
-          <SettingsIcon fontSize="medium" />
+          <Settings size={20} />
         </div>
 
-        {/* User profile section with icon and name */}
         <div className="user-profile">
-          <AccountCircleIcon fontSize="large" /> {/* User avatar icon */}
-          <span className="username">Cyprian Davis</span> {/* Display username */}
+          <User size={24} />
+          <span className="username">Cyprian Davis</span>
         </div>
       </div>
     </div>
