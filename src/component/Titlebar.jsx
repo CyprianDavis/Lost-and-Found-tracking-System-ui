@@ -24,7 +24,7 @@ export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
 
   // Object mapping menu keys to their display titles
   const menuTitles = {
-    dashboard: "Dashboard",
+    dashboard: "Dashboard Overview",
     suppliers: "Suppliers",
     inventory: "Inventory",
     products: "Products",
