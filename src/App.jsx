@@ -72,7 +72,7 @@ export default function App() {
       {/* Main Content Area */}
       <main
         className="app-content"
-        style={{ marginLeft: "0px", marginTop: "64px" }}
+        style={{ marginLeft: "0", marginTop: "50px" }}
       >
         {renderPage()}
       </main>
