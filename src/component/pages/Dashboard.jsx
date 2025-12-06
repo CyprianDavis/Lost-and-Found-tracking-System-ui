@@ -201,42 +201,29 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className='recent-activity'>
-        <div className="activity-header">
-          <h3>Recent Activity</h3>
-          <Bell className="activity-icon" />
+      {/* Additional Widgets or Data */}
+      <div className='widgets-container'>
+        <div className='widget'>
+          <div className='widget-header'>
+            <h3>Inventory Overview</h3>
+            <Package className="w-6 h-6 text-indigo-500" />
+          </div>
+          <p>Track your product inventory levels and optimize stock management.</p>
         </div>
-        <ul>
-          <li>
-            <ShoppingCart className="activity-item-icon" />
-            <div className="activity-info">
-              <p>New order #3245 received</p>
-              <span>2 minutes ago</span>
-            </div>
-          </li>
-          <li>
-            <DollarSign className="activity-item-icon" />
-            <div className="activity-info">
-              <p>Payment of $245 processed</p>
-              <span>45 minutes ago</span>
-            </div>
-          </li>
-          <li>
-            <Users className="activity-item-icon" />
-            <div className="activity-info">
-              <p>User John Doe signed up</p>
-              <span>1 hour ago</span>
-            </div>
-          </li>
-          <li>
-            <Package className="activity-item-icon" />
-            <div className="activity-info">
-              <p>Product "Premium Widget" added to catalog</p>
-              <span>3 hours ago</span>
-            </div>
-          </li>
-        </ul>
+        <div className='widget'>
+          <div className='widget-header'>
+            <h3>Customer Activity</h3>
+            <Users className="w-6 h-6 text-purple-500" />
+          </div>
+          <p>Monitor customer engagement and retention metrics.</p>
+        </div>
+        <div className='widget'>
+          <div className='widget-header'>
+            <h3>Notifications</h3>
+            <Bell className="w-6 h-6 text-blue-500" />
+          </div>
+          <p>Stay on top of alerts and reminders related to business operations.</p>
+        </div>
       </div>
     </div>
   );

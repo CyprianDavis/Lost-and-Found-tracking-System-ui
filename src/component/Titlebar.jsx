@@ -19,23 +19,15 @@ const useMediaQuery = (query) => {
   return matches;
 };
 
-export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
+export default function Titlebar({
+  activeMenu,
+  toggleSidebar,
+  sidebarWidth,
+  onLogout,
+}) {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Object mapping menu keys to their display titles
-  const menuTitles = {
-    dashboard: "Dashboard Overview",
-    suppliers: "Suppliers",
-    inventory: "Inventory",
-    products: "Products",
-    sales: "Sales",
-    customers: "Customers",
-    orders: "Orders",
-    payments: "Payments",
-    discounts: "Discounts",
-    reports: "Reports",
-  };
-
   return (
     <div
       className="top-title-bar"
@@ -45,9 +37,12 @@ export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
         transition: "all 0.3s ease",
       }}
     >
-      {/* Left section containing page title */}
       <div className="left-section">
-        <h1 className="page-title">{menuTitles[activeMenu]}</h1>
+        <img src="/ku-logo.svg" alt="Kampala University" className="ku-logo" />
+        <div className="logo-text">
+          <span>Kampala University</span>
+          <small>Lost &amp; Found Unit</small>
+        </div>
       </div>
 
       {/* Right section with icons */}
@@ -63,7 +58,12 @@ export default function Titlebar({ activeMenu, toggleSidebar, sidebarWidth }) {
 
         <div className="user-profile">
           <User size={24} />
-          <span className="username">Cyprian Davis</span>
+          <span className="username">LF Admin</span>
+          {onLogout && (
+            <button type="button" className="logout-btn" onClick={onLogout}>
+              Logout
+            </button>
+          )}
         </div>
       </div>
     </div>

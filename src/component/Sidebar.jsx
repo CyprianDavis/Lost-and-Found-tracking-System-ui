@@ -8,7 +8,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Typography,
   Toolbar,
   Box,
   IconButton,
@@ -19,15 +18,12 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import PeopleIcon from "@mui/icons-material/People";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import DiscountIcon from "@mui/icons-material/LocalOffer";
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import StoreIcon from "@mui/icons-material/Store";
-import CategoryIcon from "@mui/icons-material/Category";
+import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
+import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
+import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded";
+import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
+import AssignmentTurnedInRoundedIcon from "@mui/icons-material/AssignmentTurnedInRounded";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 
 // Define width constants for different sidebar states
 const drawerWidth = 200;        // Width when sidebar is fully expanded
@@ -69,16 +65,24 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
 
   // Array defining all navigation menu items with their properties
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: <DashboardIcon /> },
-    { id: "suppliers", label: "Suppliers", icon: <StoreIcon /> },
-    { id: "products", label: "Products", icon: <CategoryIcon /> },
-    { id: "sales", label: "Sales", icon: <ShoppingCartIcon /> },
-    { id: "inventory", label: "Inventory", icon: <InventoryIcon /> },
-    { id: "customers", label: "Customers", icon: <PeopleIcon /> },
-    { id: "orders", label: "Orders", icon: <ShoppingCartIcon /> },
-    { id: "payments", label: "Payments", icon: <PaymentsIcon /> },
-    { id: "discounts", label: "Discounts", icon: <DiscountIcon /> },
-    { id: "reports", label: "Reports", icon: <AssessmentIcon /> },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <SpaceDashboardRoundedIcon />,
+    },
+    { id: "items", label: "Items", icon: <CategoryRoundedIcon /> },
+    {
+      id: "lostReports",
+      label: "Lost Reports",
+      icon: <ReportProblemRoundedIcon />,
+    },
+    {
+      id: "foundReports",
+      label: "Found Reports",
+      icon: <Inventory2RoundedIcon />,
+    },
+    { id: "claims", label: "Claims", icon: <AssignmentTurnedInRoundedIcon /> },
+    { id: "users", label: "Users", icon: <GroupsRoundedIcon /> },
   ];
 
   return (
@@ -119,12 +123,16 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
         }}
       >
         {/* Toolbar section at the top of the sidebar */}
+
         <Toolbar className="sidebar-toolbar">
-          {/* Show app title only when sidebar is expanded */}
-          {open && (
-            <Typography variant="h6" noWrap component="div">
-              AISMS  {/* Application name/title */}
-            </Typography>
+          {open ? (
+            <div className="sidebar-logo">
+              <img src="/ku-logo.svg" alt="KU" />
+            </div>
+          ) : (
+            <div className="sidebar-logo collapsed">
+              <img src="/ku-logo.svg" alt="KU" />
+            </div>
           )}
 
           {/* Desktop toggle button - only visible on non-mobile screens */}

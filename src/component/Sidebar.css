@@ -1,19 +1,36 @@
 /* Sidebar Drawer */
 .sidebar-drawer .MuiDrawer-paper {
-  background-color: #081730; /* Dark blue background color */
-  color: #fff; /* White text color */
-  box-sizing: border-box; /* Include padding and border in element's total width/height */
-  overflow-x: hidden; /* Hide horizontal scrollbar */
-  transition: width 0.3s ease; /* Smooth transition for width changes (collapsing/expanding) */
+  background-color: #0f9d58; /* Green brand */
+  color: #fff;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  transition: width 0.3s ease;
 }
 
 /* Toolbar section at top of sidebar */
 .sidebar-toolbar {
   display: flex;
-  justify-content: space-between; /* Space out logo and toggle button */
+  justify-content: space-between;
   min-height: 64px !important; /* Minimum height matching typical app bars */
   padding: 0 10px; /* Horizontal padding */
   color: #fff; /* White text color */
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar-logo img {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
+.sidebar-logo.collapsed img {
+  width: 40px;
 }
 
 /* Toggle button inside sidebar (for closing/opening) */
@@ -27,11 +44,11 @@
   top: 80px; /* Position from top of viewport */
   left: 10px; /* Position from left of viewport */
   z-index: 1300; /* High z-index to ensure it appears above other content */
-  background-color: #081730 !important; /* Match sidebar background */
+  background-color: #0f9d58 !important; /* Match sidebar background */
   color: #fff !important; /* White icon color */
 }
 .sidebar-hamburger:hover {
-  background-color: #3a56a7 !important; /* Lighter blue on hover */
+  background-color: #0c7b45 !important;
 }
 
 /* Container for individual list items */
@@ -47,10 +64,10 @@
   transition: background 0.3s, color 0.3s; /* Smooth transitions for hover effects */
 }
 .sidebar-btn:hover {
-  background-color: #3a56a7 !important; /* Lighter blue background on hover */
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 .sidebar-btn.active {
-  background-color: #3a56a7 !important; /* Lighter blue background for active/selected state */
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Icon styling within sidebar buttons */
