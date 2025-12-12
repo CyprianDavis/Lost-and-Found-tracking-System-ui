@@ -13,16 +13,17 @@ import {
 import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import { apiRequest } from "../../lib/api";
-import { USER_ROLES } from "../../lib/constants";
+import { SELF_REGISTRATION_ROLES } from "../../lib/constants";
 
 const initialForm = {
   fullName: "",
+  username: "",
   email: "",
   password: "",
   phoneNumber: "",
   registrationNumber: "",
   department: "",
-  role: "",
+  role: SELF_REGISTRATION_ROLES[0]?.value || "STUDENT",
 };
 
 export default function Register({ onSwitchToLogin }) {
@@ -39,8 +40,8 @@ export default function Register({ onSwitchToLogin }) {
     setSubmitting(true);
     setFeedback(null);
     try {
-      if (!form.fullName || !form.email || !form.password) {
-        throw new Error("Full name, email, and password are required.");
+      if (!form.fullName || !form.username || !form.email || !form.password) {
+        throw new Error("Full name, username, email, and password are required.");
       }
       const payload = {
         ...form,
@@ -81,7 +82,8 @@ export default function Register({ onSwitchToLogin }) {
       );
     }
     return (
-      USER_ROLES.find((role) => role.value === selected)?.label || selected
+      SELF_REGISTRATION_ROLES.find((role) => role.value === selected)?.label ||
+      selected
     );
   };
 
@@ -116,6 +118,13 @@ export default function Register({ onSwitchToLogin }) {
             label="Full name"
             value={form.fullName}
             onChange={handleChange("fullName")}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Username"
+            value={form.username}
+            onChange={handleChange("username")}
             required
             fullWidth
           />
@@ -162,7 +171,7 @@ export default function Register({ onSwitchToLogin }) {
                     Select role (optional)
                   </Typography>
                 </MenuItem>
-                {USER_ROLES.map((role) => (
+                {SELF_REGISTRATION_ROLES.map((role) => (
                   <MenuItem key={role.value} value={role.value}>
                     {role.label}
                   </MenuItem>

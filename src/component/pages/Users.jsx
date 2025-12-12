@@ -36,6 +36,7 @@ import { apiRequest } from "../../lib/api";
 
 const emptyUser = {
   fullName: "",
+  username: "",
   email: "",
   phoneNumber: "",
   role: "",
@@ -52,12 +53,17 @@ export default function Users() {
     refetch,
     setParams,
   } = useApiList("/api/v1/users");
+
   const [filters, setFilters] = useState({ role: "" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formState, setFormState] = useState(emptyUser);
   const [editingUser, setEditingUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
+
+  // NEW — confirmation dialog state
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const showInitialLoader = loading && users.length === 0;
 
@@ -67,6 +73,7 @@ export default function Users() {
       user
         ? {
             fullName: user.fullName || "",
+            username: user.username || "",
             email: user.email || "",
             phoneNumber: user.phoneNumber || "",
             role: user.role || "",
@@ -74,7 +81,7 @@ export default function Users() {
             department: user.department || "",
             active: user.active ?? true,
           }
-        : emptyUser,
+        : emptyUser
     );
     setDialogOpen(true);
   };
@@ -96,6 +103,13 @@ export default function Users() {
     setFeedback(null);
     try {
       const payload = { ...formState };
+      if (!editingUser) {
+        const baseUsername = (formState.username || "").trim();
+        if (!baseUsername) {
+          throw new Error("Username is required to create a user.");
+        }
+        payload.password = `${baseUsername}123`;
+      }
       const path = editingUser
         ? `/api/v1/users/${editingUser.id}`
         : "/api/v1/users";
@@ -108,21 +122,35 @@ export default function Users() {
       closeDialog();
       refetch();
     } catch (err) {
-      setFeedback({ type: "error", message: err.message || "Submission failed." });
+      setFeedback({
+        type: "error",
+        message: err.message || "Submission failed.",
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeactivate = async (userId) => {
-    if (!window.confirm("Deactivate this user account?")) return;
+  // Open confirmation dialog instead of window.confirm
+  const openDeactivateDialog = (userId) => {
+    setSelectedUserId(userId);
+    setConfirmDialogOpen(true);
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialogOpen(false);
+    setSelectedUserId(null);
+  };
+
+  const handleDeactivateConfirm = async () => {
     try {
-      await apiRequest(`/api/v1/users/${userId}`, { method: "DELETE" });
+      await apiRequest(`/api/v1/users/${selectedUserId}`, { method: "DELETE" });
       setFeedback({ type: "success", message: "User deactivated." });
       refetch();
     } catch (err) {
       setFeedback({ type: "error", message: err.message || "Action failed." });
     }
+    closeConfirmDialog();
   };
 
   return (
@@ -141,6 +169,7 @@ export default function Users() {
         }
       />
 
+      {/* Alerts */}
       {feedback && (
         <Alert
           severity={feedback.type}
@@ -157,6 +186,7 @@ export default function Users() {
         </Alert>
       )}
 
+      {/* Filters */}
       <Paper
         component="form"
         onSubmit={handleFilterSubmit}
@@ -196,6 +226,7 @@ export default function Users() {
         </Stack>
       </Paper>
 
+      {/* TABLE */}
       <TableContainer
         component={Paper}
         elevation={0}
@@ -212,6 +243,7 @@ export default function Users() {
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id} hover>
@@ -231,11 +263,6 @@ export default function Users() {
                     <Typography variant="body2" color="text.secondary">
                       {user.phoneNumber || "No phone"}
                     </Typography>
-                    {user.department && (
-                      <Typography variant="body2" color="text.secondary">
-                        {user.department}
-                      </Typography>
-                    )}
                   </Stack>
                 </TableCell>
                 <TableCell>{user.role}</TableCell>
@@ -248,16 +275,19 @@ export default function Users() {
                   />
                 </TableCell>
                 <TableCell>{formatDateTime(user.createdAt)}</TableCell>
+
+                {/* ACTION BUTTONS */}
                 <TableCell align="right">
                   <Tooltip title="Edit user">
                     <IconButton size="small" onClick={() => openDialog(user)}>
                       <EditRoundedIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
+
                   <Tooltip title="Deactivate user">
                     <IconButton
                       size="small"
-                      onClick={() => handleDeactivate(user.id)}
+                      onClick={() => openDeactivateDialog(user.id)}
                     >
                       <PersonOffRoundedIcon fontSize="small" />
                     </IconButton>
@@ -265,6 +295,7 @@ export default function Users() {
                 </TableCell>
               </TableRow>
             ))}
+
             {!showInitialLoader && users.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
@@ -274,6 +305,7 @@ export default function Users() {
             )}
           </TableBody>
         </Table>
+
         {showInitialLoader && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress size={32} />
@@ -281,48 +313,60 @@ export default function Users() {
         )}
       </TableContainer>
 
+      {/* ADD / EDIT USER DIALOG */}
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle>
-          {editingUser ? "Edit User" : "Register User"}
-        </DialogTitle>
+        <DialogTitle>{editingUser ? "Edit User" : "Register User"}</DialogTitle>
+
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               label="Full name"
               value={formState.fullName}
-              onChange={(event) =>
-                setFormState((prev) => ({ ...prev, fullName: event.target.value }))
+              onChange={(e) =>
+                setFormState((prev) => ({ ...prev, fullName: e.target.value }))
               }
               required
-              fullWidth
             />
+
+            <TextField
+              label="Username"
+              value={formState.username}
+              onChange={(e) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  username: e.target.value,
+                }))
+              }
+              required
+            />
+
             <TextField
               label="Email"
               type="email"
               value={formState.email}
-              onChange={(event) =>
-                setFormState((prev) => ({ ...prev, email: event.target.value }))
+              onChange={(e) =>
+                setFormState((prev) => ({ ...prev, email: e.target.value }))
               }
               required
-              fullWidth
             />
+
             <TextField
               label="Phone number"
               value={formState.phoneNumber}
-              onChange={(event) =>
+              onChange={(e) =>
                 setFormState((prev) => ({
                   ...prev,
-                  phoneNumber: event.target.value,
+                  phoneNumber: e.target.value,
                 }))
               }
-              fullWidth
             />
+
             <TextField
               select
               label="Role"
               value={formState.role}
-              onChange={(event) =>
-                setFormState((prev) => ({ ...prev, role: event.target.value }))
+              onChange={(e) =>
+                setFormState((prev) => ({ ...prev, role: e.target.value }))
               }
               required
             >
@@ -333,14 +377,15 @@ export default function Users() {
                 </MenuItem>
               ))}
             </TextField>
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
               <TextField
                 label="Registration number"
                 value={formState.registrationNumber}
-                onChange={(event) =>
+                onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    registrationNumber: event.target.value,
+                    registrationNumber: e.target.value,
                   }))
                 }
                 fullWidth
@@ -348,23 +393,24 @@ export default function Users() {
               <TextField
                 label="Department"
                 value={formState.department}
-                onChange={(event) =>
+                onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    department: event.target.value,
+                    department: e.target.value,
                   }))
                 }
                 fullWidth
               />
             </Stack>
+
             <FormControlLabel
               control={
                 <Switch
                   checked={Boolean(formState.active)}
-                  onChange={(event) =>
+                  onChange={(e) =>
                     setFormState((prev) => ({
                       ...prev,
-                      active: event.target.checked,
+                      active: e.target.checked,
                     }))
                   }
                 />
@@ -373,10 +419,37 @@ export default function Users() {
             />
           </Stack>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained" disabled={saving}>
             {saving ? "Saving..." : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* CONFIRMATION DIALOG FOR DEACTIVATION */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={closeConfirmDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Deactivate User</DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            Are you sure you want to deactivate this user account? They will no
+            longer be able to login or perform actions.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeConfirmDialog}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeactivateConfirm}
+          >
+            Deactivate
           </Button>
         </DialogActions>
       </Dialog>

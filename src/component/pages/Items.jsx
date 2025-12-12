@@ -20,6 +20,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  TablePagination,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
@@ -47,13 +48,19 @@ export default function Items() {
     refetch,
     setParams,
     params,
+    page: pageData,
   } = useApiList("/api/v1/items");
   const [filters, setFilters] = useState({ name: "", category: "" });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formState, setFormState] = useState(emptyItem);
   const [editingItem, setEditingItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const hasFilters = useMemo(
     () => Boolean(params?.name || params?.category),
@@ -72,17 +79,30 @@ export default function Items() {
     setFormState(emptyItem);
   };
 
-  const handleFilterSubmit = (event) => {
-    event.preventDefault();
-    setParams({
-      name: filters.name.trim() || undefined,
-      category: filters.category.trim() || undefined,
-    });
-  };
-
   const handleResetFilters = () => {
     setFilters({ name: "", category: "" });
-    setParams({});
+    setPage(0);
+    setParams({ page: 0, size: rowsPerPage });
+  };
+
+  React.useEffect(() => {
+    const name = filters.name.trim();
+    const category = filters.category.trim();
+    setParams({
+      page,
+      size: rowsPerPage,
+      name: name || undefined,
+      category: category || undefined,
+    });
+  }, [filters.name, filters.category, page, rowsPerPage, setParams]);
+
+  const handlePageChange = (_event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const handleChange = (field, value) => {
@@ -111,17 +131,24 @@ export default function Items() {
     }
   };
 
-  const handleDelete = async (itemId) => {
-    const confirmed = window.confirm(
-      "Delete this item definition? Reports referencing it will be unaffected.",
-    );
-    if (!confirmed) return;
+  const handleDelete = (item) => {
+    setItemToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!itemToDelete) return;
+    setDeleting(true);
     try {
-      await apiRequest(`/api/v1/items/${itemId}`, { method: "DELETE" });
+      await apiRequest(`/api/v1/items/${itemToDelete.id}`, { method: "DELETE" });
       setFeedback({ type: "success", message: "Item deleted." });
       refetch();
     } catch (err) {
       setFeedback({ type: "error", message: err.message || "Failed to delete." });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -160,8 +187,6 @@ export default function Items() {
       )}
 
       <Paper
-        component="form"
-        onSubmit={handleFilterSubmit}
         elevation={0}
         sx={{
           p: 2,
@@ -192,16 +217,11 @@ export default function Items() {
             }
             fullWidth
           />
-          <Stack direction="row" spacing={1}>
-            <Button type="submit" variant="outlined">
-              Apply
+          {hasFilters && (
+            <Button type="button" onClick={handleResetFilters}>
+              Reset
             </Button>
-            {hasFilters && (
-              <Button type="button" onClick={handleResetFilters}>
-                Reset
-              </Button>
-            )}
-          </Stack>
+          )}
         </Stack>
       </Paper>
 
@@ -252,7 +272,7 @@ export default function Items() {
                   </Tooltip>
                   <Tooltip title="Delete item">
                     <IconButton
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item)}
                       size="small"
                     >
                       <DeleteOutlineRoundedIcon fontSize="small" />
@@ -275,6 +295,15 @@ export default function Items() {
             <CircularProgress size={32} />
           </Box>
         )}
+        <TablePagination
+          component="div"
+          count={pageData?.totalElements ?? items.length ?? 0}
+          page={pageData?.number ?? page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageData?.size ?? rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+        />
       </TableContainer>
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
@@ -347,6 +376,41 @@ export default function Items() {
             disabled={saving}
           >
             {saving ? "Saving..." : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setItemToDelete(null);
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Delete Item</DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            Delete item "{itemToDelete?.name}"? Reports referencing it will remain but the definition will be removed.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setItemToDelete(null);
+            }}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDeleteConfirmed}
+            disabled={deleting}
+          >
+            {deleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

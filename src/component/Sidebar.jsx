@@ -26,11 +26,16 @@ import AssignmentTurnedInRoundedIcon from "@mui/icons-material/AssignmentTurnedI
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 
 // Define width constants for different sidebar states
-const drawerWidth = 200;        // Width when sidebar is fully expanded
+const drawerWidth = 200; // Width when sidebar is fully expanded
 const collapsedDrawerWidth = 60; // Width when sidebar is collapsed (icons only)
 
 // Main Sidebar component function
-export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
+export default function Sidebar({
+  activeMenu,
+  setActiveMenu,
+  onSidebarWidth,
+  visibleMenus,
+}) {
   // Get the current theme for responsive design
   const theme = useTheme();
   // Check if the current screen size is mobile (below 'md' breakpoint)
@@ -49,11 +54,11 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
   useEffect(() => {
     // Calculate current width based on device and open state
     const width = isMobile
-      ? drawerWidth  // On mobile, always use full width when open
+      ? drawerWidth // On mobile, always use full width when open
       : open
-      ? drawerWidth  // On desktop, use full width when open
+      ? drawerWidth // On desktop, use full width when open
       : collapsedDrawerWidth; // On desktop, use collapsed width when closed
-    
+
     // Call parent callback if provided to communicate width change
     if (onSidebarWidth) onSidebarWidth(width);
   }, [isMobile, open, onSidebarWidth]); // Re-run when any of these dependencies change
@@ -85,32 +90,42 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
     { id: "users", label: "Users", icon: <GroupsRoundedIcon /> },
   ];
 
+  const filteredMenuItems =
+    Array.isArray(visibleMenus) && visibleMenus.length > 0
+      ? menuItems.filter((item) => visibleMenus.includes(item.id))
+      : menuItems;
+
+  const itemsToRender =
+    filteredMenuItems.length > 0
+      ? filteredMenuItems
+      : menuItems.filter((item) => item.id === "dashboard");
+
   return (
     <>
       {/* Mobile hamburger menu button - only visible on mobile screens */}
       {isMobile && (
         <IconButton
-          aria-label="open drawer"  // Accessibility label
-          onClick={toggleDrawer}     // Toggle sidebar on click
-          edge="start"               // Align to start of container
+          aria-label="open drawer" // Accessibility label
+          onClick={toggleDrawer} // Toggle sidebar on click
+          edge="start" // Align to start of container
           className="sidebar-hamburger" // CSS class for styling
         >
-          <MenuIcon />  {/* Hamburger menu icon */}
+          <MenuIcon /> {/* Hamburger menu icon */}
         </IconButton>
       )}
 
       {/* Main drawer component that contains the sidebar navigation */}
       <Drawer
         variant={isMobile ? "temporary" : "permanent"} // Temporary on mobile (overlay), permanent on desktop
-        open={open}           // Controlled open/close state
+        open={open} // Controlled open/close state
         onClose={toggleDrawer} // Close handler (for mobile overlay)
         className={`sidebar-drawer ${open ? "expanded" : "collapsed"}`} // Dynamic CSS classes
         sx={{
           // Responsive width handling
           width: isMobile
-            ? drawerWidth  // Full width on mobile when open
+            ? drawerWidth // Full width on mobile when open
             : open
-            ? drawerWidth  // Full width on desktop when open
+            ? drawerWidth // Full width on desktop when open
             : collapsedDrawerWidth, // Collapsed width on desktop when closed
           "& .MuiDrawer-paper": {
             // Apply same width logic to the paper (visible part) of the drawer
@@ -125,16 +140,6 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
         {/* Toolbar section at the top of the sidebar */}
 
         <Toolbar className="sidebar-toolbar">
-          {open ? (
-            <div className="sidebar-logo">
-              <img src="/ku-logo.svg" alt="KU" />
-            </div>
-          ) : (
-            <div className="sidebar-logo collapsed">
-              <img src="/ku-logo.svg" alt="KU" />
-            </div>
-          )}
-
           {/* Desktop toggle button - only visible on non-mobile screens */}
           {!isMobile && (
             <IconButton onClick={toggleDrawer} className="sidebar-toggle-btn">
@@ -148,8 +153,12 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
         <Box sx={{ overflow: "auto" }}>
           <List>
             {/* Map through menuItems array to create navigation buttons */}
-            {menuItems.map((item) => (
-              <ListItem key={item.id} disablePadding className="sidebar-list-item">
+            {itemsToRender.map((item) => (
+              <ListItem
+                key={item.id}
+                disablePadding
+                className="sidebar-list-item"
+              >
                 <ListItemButton
                   selected={activeMenu === item.id} // Highlight if this is the active menu
                   onClick={() => {
@@ -162,7 +171,9 @@ export default function Sidebar({ activeMenu, setActiveMenu, onSidebarWidth }) {
                   } ${open ? "expanded" : "collapsed"}`}
                 >
                   {/* Menu item icon */}
-                  <ListItemIcon className="sidebar-icon">{item.icon}</ListItemIcon>
+                  <ListItemIcon className="sidebar-icon">
+                    {item.icon}
+                  </ListItemIcon>
                   {/* Menu item text - hidden when sidebar is collapsed */}
                   <ListItemText
                     primary={item.label}

@@ -48,9 +48,15 @@ export default function Login({ onSwitchToRegister, onAuthenticated }) {
         onAuthenticated(result);
       }
     } catch (error) {
+      const raw = error?.message || "Unable to login.";
+      const friendly =
+        raw.toLowerCase().includes("bad credentials") ||
+        raw.toLowerCase().includes("unauthorized")
+          ? "Invalid email or password."
+          : raw;
       setFeedback({
         type: "error",
-        message: error.message || "Unable to login.",
+        message: friendly,
       });
     } finally {
       setSubmitting(false);

@@ -21,6 +21,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  TablePagination,
 } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
@@ -28,37 +29,61 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import PageHeader from "../common/PageHeader";
 import StatusChip from "../common/StatusChip";
 import { FOUND_REPORT_STATUSES } from "../../lib/constants";
+import { toOptionalString } from "../../lib/itemForm";
 import { formatDate, formatDateTime } from "../../lib/formatters";
 import { useApiList } from "../../hooks/useApiList";
 import { apiRequest } from "../../lib/api";
 
 const emptyReport = {
-  userId: "",
-  itemId: "",
+  lostReferenceCode: "",
   locationFound: "",
   dateFound: "",
   storageLocation: "",
   extraDescription: "",
 };
 
-export default function FoundReports() {
+const createSelfFoundForm = () => ({
+  lostReferenceCode: "",
+  locationFound: "",
+  dateFound: "",
+  storageLocation: "",
+  extraDescription: "",
+});
+
+export default function FoundReports({ currentUserId, permissions = [] }) {
+  const canManageUsers =
+    Array.isArray(permissions) && permissions.includes("MANAGE_USERS");
   const {
     data: foundReports = [],
+    page: pageData,
     loading,
     error,
-    refetch,
     setParams,
-  } = useApiList("/api/v1/found-reports");
+    refetch,
+  } = useApiList("/api/v1/found-reports", { page: 0, size: 10 });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const { data: items = [] } = useApiList("/api/v1/items");
-  const { data: users = [] } = useApiList("/api/v1/users");
+  const { data: users = [] } = useApiList(
+    "/api/v1/users",
+    undefined,
+    { enabled: canManageUsers },
+  );
 
-  const [filters, setFilters] = useState({ status: "", userId: "" });
+  const [filters, setFilters] = useState({ keyword: "" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formState, setFormState] = useState(emptyReport);
   const [editingReport, setEditingReport] = useState(null);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  const [selfReportForm, setSelfReportForm] = useState(createSelfFoundForm);
+  const [selfFeedback, setSelfFeedback] = useState(null);
+  const [selfSubmitting, setSelfSubmitting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const actionLabel = canManageUsers ? "New Found Report" : "Report Found Item";
 
   const itemLookup = useMemo(() => {
     const map = new Map();
@@ -75,18 +100,25 @@ export default function FoundReports() {
   const showInitialLoader = loading && foundReports.length === 0;
 
   const openDialog = (report) => {
+    if (!canManageUsers) {
+      setEditingReport(null);
+      setSelfReportForm(createSelfFoundForm());
+      setSelfFeedback(null);
+      setSelfSubmitting(false);
+      setDialogOpen(true);
+      return;
+    }
     setEditingReport(report ?? null);
     setFormState(
       report
         ? {
-            userId: report.userId?.toString() || "",
-            itemId: report.itemId?.toString() || "",
+            lostReferenceCode: "",
             locationFound: report.locationFound || "",
             dateFound: report.dateFound || "",
             storageLocation: report.storageLocation || "",
             extraDescription: report.extraDescription || "",
           }
-        : emptyReport,
+        : { ...emptyReport },
     );
     setDialogOpen(true);
   };
@@ -95,14 +127,32 @@ export default function FoundReports() {
     setEditingReport(null);
     setFormState(emptyReport);
     setDialogOpen(false);
+    setSelfReportForm(createSelfFoundForm());
+    setSelfFeedback(null);
+    setSelfSubmitting(false);
   };
 
   const handleFilterSubmit = (event) => {
     event.preventDefault();
-    setParams({
-      status: filters.status || undefined,
-      userId: filters.userId || undefined,
-    });
+  };
+
+  React.useEffect(() => {
+    const keyword = filters.keyword.trim();
+    setParams((prev) => ({
+      ...prev,
+      page,
+      size: rowsPerPage,
+      keyword: keyword || undefined,
+    }));
+  }, [filters.keyword, page, rowsPerPage, setParams]);
+
+  const handlePageChange = (_event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const handleStatusChange = async (reportId, status) => {
@@ -121,14 +171,26 @@ export default function FoundReports() {
     }
   };
 
-  const handleDelete = async (reportId) => {
-    if (!window.confirm("Delete this found report?")) return;
+  const handleDelete = (report) => {
+    setReportToDelete(report);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!reportToDelete) return;
+    setDeleting(true);
     try {
-      await apiRequest(`/api/v1/found-reports/${reportId}`, { method: "DELETE" });
+      await apiRequest(`/api/v1/found-reports/${reportToDelete.id}`, {
+        method: "DELETE",
+      });
       setFeedback({ type: "success", message: "Found report removed." });
       refetch();
     } catch (err) {
       setFeedback({ type: "error", message: err.message || "Failed to delete." });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setReportToDelete(null);
     }
   };
 
@@ -137,23 +199,24 @@ export default function FoundReports() {
     setSaving(true);
     setFeedback(null);
     if (
-      !formState.userId ||
-      !formState.itemId ||
       !formState.locationFound ||
-      !formState.dateFound
+      !formState.dateFound ||
+      (!editingReport && !formState.lostReferenceCode)
     ) {
       setSaving(false);
-      setFeedback({ type: "error", message: "Complete all required fields." });
+      setFeedback({
+        type: "error",
+        message: "Reference code, location, and date found are required.",
+      });
       return;
     }
     try {
       const payload = {
-        userId: Number(formState.userId),
-        itemId: Number(formState.itemId),
         locationFound: formState.locationFound,
         dateFound: formState.dateFound,
-        storageLocation: formState.storageLocation || null,
-        extraDescription: formState.extraDescription || null,
+        lostReferenceCode: toOptionalString(formState.lostReferenceCode),
+        storageLocation: toOptionalString(formState.storageLocation),
+        extraDescription: toOptionalString(formState.extraDescription),
       };
       const path = editingReport
         ? `/api/v1/found-reports/${editingReport.id}`
@@ -173,6 +236,55 @@ export default function FoundReports() {
     }
   };
 
+  const handleSelfFieldChange = (field) => (event) => {
+    const value = event.target.value;
+    setSelfReportForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSelfSubmit = async (event) => {
+    event.preventDefault();
+    if (!currentUserId) {
+      setSelfFeedback({
+        type: "error",
+        message: "Session expired. Please sign out and back in.",
+      });
+      return;
+    }
+    try {
+      setSelfSubmitting(true);
+      setSelfFeedback(null);
+      const lostReferenceCode = toOptionalString(selfReportForm.lostReferenceCode);
+      const locationFound = toOptionalString(selfReportForm.locationFound);
+      const dateFound = toOptionalString(selfReportForm.dateFound);
+      if (!lostReferenceCode || !locationFound || !dateFound) {
+        throw new Error("Reference code, location, and date found are required.");
+      }
+      await apiRequest("/api/v1/found-reports", {
+        method: "POST",
+        body: {
+          lostReferenceCode,
+          locationFound,
+          dateFound,
+          extraDescription: toOptionalString(selfReportForm.extraDescription),
+          storageLocation: toOptionalString(selfReportForm.storageLocation),
+        },
+      });
+      setFeedback({
+        type: "success",
+        message: "Found report submitted successfully.",
+      });
+      closeDialog();
+      refetch();
+    } catch (err) {
+      setSelfFeedback({
+        type: "error",
+        message: err.message || "Failed to submit found report.",
+      });
+    } finally {
+      setSelfSubmitting(false);
+    }
+  };
+
   return (
     <Box>
       <PageHeader
@@ -184,7 +296,7 @@ export default function FoundReports() {
             startIcon={<AddRoundedIcon />}
             onClick={() => openDialog()}
           >
-            New Found Report
+            {actionLabel}
           </Button>
         }
       />
@@ -223,26 +335,11 @@ export default function FoundReports() {
           alignItems={{ xs: "stretch", md: "flex-end" }}
         >
           <TextField
-            select
-            label="Status"
-            value={filters.status}
+            label="Search"
+            placeholder="Location, reference, item name..."
+            value={filters.keyword}
             onChange={(event) =>
-              setFilters((prev) => ({ ...prev, status: event.target.value }))
-            }
-            fullWidth
-          >
-            <MenuItem value="">All statuses</MenuItem>
-            {FOUND_REPORT_STATUSES.map((status) => (
-              <MenuItem key={status.value} value={status.value}>
-                {status.label}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Finder ID"
-            value={filters.userId}
-            onChange={(event) =>
-              setFilters((prev) => ({ ...prev, userId: event.target.value }))
+              setFilters((prev) => ({ ...prev, keyword: event.target.value }))
             }
             fullWidth
           />
@@ -268,7 +365,7 @@ export default function FoundReports() {
               <TableCell>Storage</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Updated</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              {canManageUsers && <TableCell align="right">Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -317,48 +414,55 @@ export default function FoundReports() {
                   <TableCell>
                     <Stack spacing={1}>
                       <StatusChip value={report.status} />
-                      <TextField
-                        select
-                        size="small"
-                        value={report.status}
-                        onChange={(event) =>
-                          handleStatusChange(report.id, event.target.value)
-                        }
-                        disabled={statusUpdatingId === report.id}
-                      >
-                        {FOUND_REPORT_STATUSES.map((status) => (
-                          <MenuItem key={status.value} value={status.value}>
-                            {status.label}
-                          </MenuItem>
-                        ))}
-                      </TextField>
+                      {canManageUsers && (
+                        <TextField
+                          select
+                          size="small"
+                          value={report.status}
+                          onChange={(event) =>
+                            handleStatusChange(report.id, event.target.value)
+                          }
+                          disabled={statusUpdatingId === report.id}
+                        >
+                          {FOUND_REPORT_STATUSES.map((status) => (
+                            <MenuItem key={status.value} value={status.value}>
+                              {status.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
                     </Stack>
                   </TableCell>
                   <TableCell>{formatDateTime(report.updatedAt)}</TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="Edit report">
-                      <IconButton
-                        size="small"
-                        onClick={() => openDialog(report)}
-                      >
-                        <EditRoundedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete report">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDelete(report.id)}
-                      >
-                        <DeleteOutlineRoundedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
+                  {canManageUsers && (
+                    <TableCell align="right">
+                      <Tooltip title="Edit report">
+                        <IconButton
+                          size="small"
+                          onClick={() => openDialog(report)}
+                        >
+                          <EditRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete report">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(report)}
+                        >
+                          <DeleteOutlineRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}
             {!showInitialLoader && foundReports.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} align="center">
+                <TableCell
+                  colSpan={canManageUsers ? 9 : 8}
+                  align="center"
+                >
                   No found reports available.
                 </TableCell>
               </TableRow>
@@ -370,100 +474,190 @@ export default function FoundReports() {
             <CircularProgress size={32} />
           </Box>
         )}
+        <TablePagination
+          component="div"
+          count={pageData?.totalElements ?? foundReports.length}
+          page={pageData?.number ?? page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageData?.size ?? rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+        />
       </TableContainer>
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle>
-          {editingReport ? "Edit Found Report" : "New Found Report"}
+          {canManageUsers
+            ? editingReport
+              ? "Edit Found Report"
+              : "New Found Report"
+            : "Report Found Item"}
         </DialogTitle>
         <DialogContent dividers>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              select
-              label="Finder"
-              value={formState.userId}
-              onChange={(event) =>
-                setFormState((prev) => ({ ...prev, userId: event.target.value }))
-              }
-              required
-              fullWidth
-            >
-              <MenuItem value="">Select user</MenuItem>
-              {users.map((user) => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.fullName} ({user.role})
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Item"
-              value={formState.itemId}
-              onChange={(event) =>
-                setFormState((prev) => ({ ...prev, itemId: event.target.value }))
-              }
-              required
-              fullWidth
-            >
-              <MenuItem value="">Select item</MenuItem>
-              {items.map((item) => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.name} ({item.category})
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="Location found"
-              value={formState.locationFound}
-              onChange={(event) =>
-                setFormState((prev) => ({
-                  ...prev,
-                  locationFound: event.target.value,
-                }))
-              }
-              required
-              fullWidth
-            />
-            <TextField
-              label="Date found"
-              type="date"
-              value={formState.dateFound}
-              onChange={(event) =>
-                setFormState((prev) => ({ ...prev, dateFound: event.target.value }))
-              }
-              required
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-            <TextField
-              label="Storage location"
-              value={formState.storageLocation}
-              onChange={(event) =>
-                setFormState((prev) => ({
-                  ...prev,
-                  storageLocation: event.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <TextField
-              label="Extra description"
-              multiline
-              rows={3}
-              value={formState.extraDescription}
-              onChange={(event) =>
-                setFormState((prev) => ({
-                  ...prev,
-                  extraDescription: event.target.value,
-                }))
-              }
-            />
-          </Stack>
+          {canManageUsers ? (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Lost report reference code"
+                value={formState.lostReferenceCode}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    lostReferenceCode: event.target.value,
+                  }))
+                }
+                required={!editingReport}
+                fullWidth
+                placeholder="e.g., LST-20240215-1234"
+              />
+              <TextField
+                label="Location found"
+                value={formState.locationFound}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    locationFound: event.target.value,
+                  }))
+                }
+                required
+                fullWidth
+              />
+              <TextField
+                label="Date found"
+                type="date"
+                value={formState.dateFound}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    dateFound: event.target.value,
+                  }))
+                }
+                required
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+              <TextField
+                label="Storage location"
+                value={formState.storageLocation}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    storageLocation: event.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <TextField
+                label="Extra description"
+                multiline
+                rows={3}
+                value={formState.extraDescription}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    extraDescription: event.target.value,
+                  }))
+                }
+              />
+            </Stack>
+          ) : (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              {selfFeedback && (
+                <Alert
+                  severity={selfFeedback.type}
+                  onClose={() => setSelfFeedback(null)}
+                >
+                  {selfFeedback.message}
+                </Alert>
+              )}
+              <TextField
+                label="Lost report reference code"
+                value={selfReportForm.lostReferenceCode}
+                onChange={handleSelfFieldChange("lostReferenceCode")}
+                required
+                fullWidth
+                placeholder="e.g., LST-20240215-1234"
+              />
+              <TextField
+                label="Location found"
+                value={selfReportForm.locationFound}
+                onChange={handleSelfFieldChange("locationFound")}
+                required
+                fullWidth
+              />
+              <TextField
+                label="Date found"
+                type="date"
+                value={selfReportForm.dateFound}
+                onChange={handleSelfFieldChange("dateFound")}
+                InputLabelProps={{ shrink: true }}
+                required
+              />
+              <TextField
+                label="Storage location"
+                value={selfReportForm.storageLocation}
+                onChange={handleSelfFieldChange("storageLocation")}
+                fullWidth
+              />
+              <TextField
+                label="Extra description"
+                value={selfReportForm.extraDescription}
+                onChange={handleSelfFieldChange("extraDescription")}
+                multiline
+                rows={3}
+              />
+            </Stack>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={saving}>
-            {saving ? "Saving..." : "Save"}
+          {canManageUsers ? (
+            <Button onClick={handleSubmit} variant="contained" disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSelfSubmit}
+              variant="contained"
+              disabled={selfSubmitting}
+            >
+              {selfSubmitting ? "Submitting..." : "Submit Report"}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setReportToDelete(null);
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Delete Found Report</DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            Are you sure you want to delete found report #
+            {reportToDelete?.id}? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setReportToDelete(null);
+            }}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDeleteConfirmed}
+            disabled={deleting}
+          >
+            {deleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

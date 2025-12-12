@@ -1,0 +1,209 @@
+.admin-dashboard {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.admin-dashboard .widgets-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.admin-dashboard .widget {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.admin-dashboard .widget:hover {
+  transform: translateY(-5px);
+}
+
+.admin-dashboard .widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.admin-dashboard .widget-header h3 {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-dashboard .widget-icon {
+  font-size: 24px;
+}
+
+.admin-dashboard .widget-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.admin-dashboard .widget-change {
+  font-size: 14px;
+}
+
+.admin-dashboard .widget-change.positive {
+  color: #2ecc71;
+}
+
+.admin-dashboard .widget-change.negative {
+  color: #e74c3c;
+}
+
+.admin-dashboard .chart-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.admin-dashboard .chart-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.admin-dashboard .chart-card h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.admin-dashboard .chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.admin-dashboard .chart-select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background-color: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-dashboard .chart-select:hover {
+  border-color: #9ca3af;
+  background-color: #f3f4f6;
+}
+
+.admin-dashboard .chart-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.admin-dashboard .sales-purchases-chart {
+  width: 100%;
+  height: 300px;
+}
+
+.admin-dashboard .sales-purchases-chart .recharts-bar-rectangle path {
+  transition: all 0.3s ease-in-out;
+}
+
+.admin-dashboard .sales-purchases-chart .recharts-bar-rectangle:hover path {
+  opacity: 0.85;
+  transform: scaleY(1.05);
+}
+
+.admin-dashboard .chart-placeholder {
+  height: 250px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #7f8c8d;
+  margin-top: 15px;
+}
+
+.admin-dashboard .trend-icon {
+  margin-right: 6px;
+}
+
+.admin-dashboard .recent-activity {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard .recent-activity h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.admin-dashboard .recent-activity ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-dashboard .recent-activity li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.admin-dashboard .recent-activity li:last-child {
+  border-bottom: none;
+}
+
+.admin-dashboard .activity-info p {
+  margin: 0;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.admin-dashboard .activity-info span {
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+.admin-dashboard .activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-dashboard .activity-icon {
+  color: #0f9d58;
+}
+
+.admin-dashboard .activity-item-icon {
+  color: #0f9d58;
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard .chart-container {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-dashboard .widgets-container {
+    grid-template-columns: 1fr;
+  }
+}

@@ -24,3 +24,8 @@ export const USER_ROLES = [
   { value: "SECURITY", label: "Security" },
   { value: "ADMIN", label: "Administrator" },
 ];
+
+// Roles that can be selected on the public registration form (others are admin-managed)
+export const SELF_REGISTRATION_ROLES = USER_ROLES.filter((role) =>
+  ["STUDENT", "STAFF"].includes(role.value),
+);
