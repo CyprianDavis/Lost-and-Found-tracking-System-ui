@@ -53,3 +53,17 @@ The dev server prints the local URL (typically http://localhost:5173).
 ### Notes
 - If you change backend origin or ports, update `VITE_API_BASE_URL`.
 - To clear an expired session, remove `lost-found-auth` from localStorage or log out in the UI.
+
+### UI Images
+- Login form
+  <img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/61c2698f-726b-4b5b-90d0-d4e4c9b28f76" />
+- Registration form
+  <img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/0e957605-008d-4d2e-9b7c-941753edac13" />
+- Admin Dashboard
+  <img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/16526c78-3e44-450e-95ee-9a04c1686bcc" />
+- User Dashboard
+  <img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/b89c3fcf-afbb-4784-bcb2-fc632546bcf1" />
+
+
+
+
